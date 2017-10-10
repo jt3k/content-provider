@@ -1,0 +1,25 @@
+{
+  "name": "content-provider",
+  "version": "1.0.0",
+  "description": "telegram bot that can give a link to an audio/video files",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jt3k/content-provider.git"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "youtube-dl",
+    "content"
+  ],
+  "author": "Andrey Gurtovoy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jt3k/content-provider/issues"
+  },
+  "homepage": "https://github.com/jt3k/content-provider#readme"
+}
