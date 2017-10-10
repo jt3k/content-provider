@@ -4,6 +4,7 @@
   "description": "telegram bot that can give a link to an audio/video files",
   "main": "index.js",
   "scripts": {
+    "start": "micro-bot",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,5 +22,11 @@
   "bugs": {
     "url": "https://github.com/jt3k/content-provider/issues"
   },
-  "homepage": "https://github.com/jt3k/content-provider#readme"
+  "homepage": "https://github.com/jt3k/content-provider#readme",
+  "dependencies": {
+    "got": "^7.1.0",
+    "micro-bot": "^1.4.2",
+    "pretty-bytes": "^4.0.2",
+    "remote-file-size": "^3.0.3"
+  }
 }
