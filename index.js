@@ -9,11 +9,11 @@ app.on('message', (ctx) => {
 	console.log('запрос', ctx.message.text);
 	getLink(ctx.message.text)
 		.then(url => {
-
 			if (/\n/.test(url)) {
 				url.split(/\n/).forEach(url => {
 					remote(url, (err, size) => {
-						const replyMsg = `${url} [${prettyBytes(size)}]`;
+						size = size != null ? `[${prettyBytes(size)}]` : '';
+						const replyMsg = `${url} ${size}`;
 						console.log({replyMsg});
 						ctx.reply(replyMsg);
 					})
