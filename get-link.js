@@ -1,31 +1,37 @@
+const EventEmitter = require('events');
+class Emitter extends EventEmitter {}
+
 const { spawn } = require('child_process');
+const bus = require('./bus.js');
 
 module.exports = function (url) {
-	return new Promise ((resolve, reject) => {
-		if (!url) {
-			return reject(new Error('url not specified'));
-		}
+	if (!url) {
+		return Promise.reject(new Error('url not specified'));
+	}
 
-		const options = ['-g', url];
-		const isYoutube = /^https?:\/\/(www\.youtube\.com|youtu\.be)/.test(url);
-		if (isYoutube) {
-			options.push('-f', 'mp4');
-		}
+	const localBus = new Emitter();
 
-		const child = spawn('youtube-dl', options);
 
-		let accStdOut = '';
-		child.stdout.on('data', (data) => {
-			accStdOut += data.toString() + '\n';
-		});
+	const options = ['-g', url];
+	const isYoutube = /^https?:\/\/(www\.youtube\.com|youtu\.be)/.test(url);
+	if (isYoutube) {
+		options.push('-f', 'mp4'); // prevent output splitted audio and video
+	}
 
-		child.stderr.on('data', (data) => {
-			reject(data.toString());
-		});
+	const child = spawn('youtube-dl', options);
 
-		child.on('close', (code) => {
-			resolve(accStdOut);
-		});
-	})
+	child.stdout.on('data', (data) => {
+		localBus.emit('receive', {msg: data.toString().trim()});
+	});
+
+	child.stderr.on('data', (data) => {
+		localBus.emit('error', {error: data.toString().trim()});
+	});
+
+	child.on('close', (code) => {
+		localBus.emit('end');
+	});
+	
+	return Promise.resolve(localBus);
 };
 

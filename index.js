@@ -1,29 +1,58 @@
-const remote = require('remote-file-size');
-const prettyBytes = require('pretty-bytes');
 const { Composer } = require('micro-bot')
+const bus = require('./bus.js');
 const getLink = require('./get-link.js');
 const app = new Composer();
+const {URL} = require('url');
 
-app.command('/start', (ctx) => ctx.reply('Welcome!\n\nEnter the url with the content that you want to get\n\n'))
+app.command('/start', (ctx) => ctx.replyWithMarkdown('*=== Welcome!\n\nEnter the url with the content that you want to get\n\n*'))
 app.on('message', (ctx) => {
-	console.log('запрос', ctx.message.text);
-	getLink(ctx.message.text)
-		.then(url => {
-			if (/\n/.test(url)) {
-				url.split(/\n/).forEach(url => {
-					remote(url, (err, size) => {
-						size = size != null ? `[${prettyBytes(size)}]` : '';
-						const replyMsg = `${url} ${size}`;
-						console.log({replyMsg});
-						ctx.reply(replyMsg);
-					})
-				});
-			}
+	const userId = ctx.chat.id.toString();
+	const isStillWorked = bus.eventNames().includes(userId);
+	if (isStillWorked) {
+		ctx.replyWithMarkdown('*=== Wait to last task is end.*');
+		return;
+	}
+	ctx.replyWithMarkdown('*=== Ok, started!*');
+
+	const url = ctx.message.text;
+	startMiningUrls(userId, url);
+
+	bus.on(userId, msg => {
+		const filename = new URL(msg).pathname.split('/').slice(-1);
+		ctx.replyWithMarkdown(`[${filename}](${msg})`);
+	});
+
+	bus.once(`${userId}-error`, ({error}) => {
+		ctx.replyWithMarkdown(`*=== ERROR\n${error}\n=== ERROR*`);
+		bus.emit(`${userId}-end-task`);
+	});
+
+	bus.once(`${userId}-end-task`, () => {
+		bus.removeAllListeners(`${userId}`);
+		bus.removeAllListeners(`${userId}-error`);
+	});
+
+});
+
+
+function startMiningUrls(userId, url) {
+	getLink(url)
+		.then(miningBus => {
+			miningBus.on('receive', ({msg}) => {
+				bus.emit(userId, msg);
+			});
+
+			miningBus.on('error', ({error}) => {
+				bus.emit(`${userId}-error`, {error});
+			});
+
+			miningBus.on('end', () => {
+				bus.emit(`${userId}-end-task`);
+			});
 		})
-		.catch(err => {
-			console.log({err});
-			ctx.reply(err);
-		})
-})
+		.catch((error) => {
+			bus.emit(`${userId}-error`, {error});
+		});
+}
 
 module.exports = app;
