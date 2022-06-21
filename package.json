@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/jt3k/content-provider#readme",
   "dependencies": {
-    "got": "^7.1.0",
+    "got": "^11.8.5",
     "micro-bot": "^1.4.2",
     "pretty-bytes": "^4.0.2",
     "remote-file-size": "^3.0.5"
